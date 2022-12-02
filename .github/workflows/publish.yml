@@ -52,7 +52,7 @@ jobs:
         run: |
           export POETRY_HTTP_BASIC_CODEARTIFACT_USERNAME=aws
           export POETRY_HTTP_BASIC_CODEARTIFACT_PASSWORD=$(aws codeartifact get-authorization-token --domain-owner ${{ inputs.aws-domain-owner }} --domain ${{ inputs.aws-domain }} --query 'authorizationToken' --output text)
-          poetry config repositories.codeartifact https://${{ inputs.aws-domain }}-${{ inputs.aws-domain-owner }}.d.codeartifact.${{ inputs.aws-role }}.amazonaws.com/pypi/api-team/
+          poetry config repositories.codeartifact https://${{ inputs.aws-domain }}-${{ inputs.aws-domain-owner }}.d.codeartifact.${{ inputs.aws-region }}.amazonaws.com/pypi/api-team/
           poetry config http-basic.codeartifact $POETRY_HTTP_BASIC_CODEARTIFACT_USERNAME $POETRY_HTTP_BASIC_CODEARTIFACT_PASSWORD
           poetry -vvv publish --build --repository codeartifact
 

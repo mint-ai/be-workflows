@@ -32,10 +32,6 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: "3.8"
-    - name: Testing inputs
-      env:
-        INPUTS: ${{ toJson(inputs) }}
-      run: echo "$INPUTS"
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:

@@ -64,7 +64,7 @@ jobs:
       run: mypy ${{ steps.changed-py-files.outputs.all_changed_files }}
     - name: Run tests with pytest
       run: |
-        pytest myn_utils
+        pytest
     - name: Build
       run: |
         poetry -vvv build

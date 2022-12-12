@@ -1,0 +1,57 @@
+name: Deploy on stage
+
+on:
+  workflow_call:
+    inputs:
+      app:
+        required: true
+        type: string
+
+jobs:
+  stage-deploy:
+    name: Deploy on stage
+
+    runs-on: ubuntu-latest
+
+    env:
+      APP: ${{ inputs.app }}
+      STACK: test
+
+    steps:
+      - name: Exit if build failed
+        if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+        run: exit 1
+
+      - name: Checkout service
+        uses: actions/checkout@v3
+        with:
+          path: service
+
+      - name: Set VERSION
+        working-directory: service
+        run: echo "VERSION=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
+      - name: Checkout apps
+        uses: actions/checkout@v3
+        with:
+          repository: mint-ai/apps
+          ssh-key: ${{ secrets.APPS_SSH_KEY }}
+          ref: master
+          path: apps
+
+      - name: Update apps
+        working-directory: apps/envs/${{ env.STACK }}
+        run: |
+          sed -Ei "s/(- ${{ env.APP }}_ver)\s*=.*/\1=${{ env.VERSION }}/" kustomization.yaml
+          git config user.email deploy-bot@mint.ai
+          git config user.name "Deploy bot"
+          git commit kustomization.yaml -m "[${{ env.STACK }}] ${{ env.APP }}: ${{ env.VERSION }}" || COMMITED=$?
+          if [[ $COMMITED -eq 0 ]]; then git push; fi
+
+      - name: Sync ArgoCD Application
+        uses: omegion/argocd-actions@v1
+        with:
+          address: ${{ secrets.ARGOCD_SERVER }}
+          token: ${{ secrets.ARGOCD_AUTH_TOKEN }}
+          action: sync
+          appName: "apps"

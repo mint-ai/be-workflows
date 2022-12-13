@@ -94,10 +94,10 @@ jobs:
         run: |
           docker run --entrypoint "" ${{ env.IMAGE_NAME }} black --target-version py310 -S --check /usr/src/app
 
-#      - name: Run tests
-#        run: |
-#          docker run -e POSTGRES_HOST="localhost" -e POSTGRES_PASSWORD=$POSTGRES_PASSWORD --network="host" \
-#          --user app --entrypoint "" ${{ env.IMAGE_NAME }} pytest
+      - name: Run tests
+        run: |
+          docker run -e "DJANGO_DUMMY_ENV=True" -e POSTGRES_HOST="localhost" -e POSTGRES_PASSWORD=$POSTGRES_PASSWORD --network="host" \
+          --user app --entrypoint "" ${{ env.IMAGE_NAME }} pytest
 
       - name: Sonarqube
         uses: sonarsource/sonarqube-scan-action@master

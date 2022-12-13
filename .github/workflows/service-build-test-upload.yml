@@ -28,8 +28,6 @@ jobs:
   build-test-upload:
     name: Build, test and upload new artifact
 
-    secrets: inherit
-
     runs-on: ubuntu-latest
 
     env:

@@ -75,11 +75,13 @@ jobs:
         with:
           context: .
           no-cache: true
-          build-args: POETRY_HTTP_BASIC_CODEARTIFACT_PASSWORD=$(aws codeartifact get-authorization-token --domain-owner ${{ inputs.aws-domain-owner }} --domain ${{ inputs.aws-domain }} --query 'authorizationToken' --output text)
+          build-args: POETRY_HTTP_BASIC_CODEARTIFACT_PASSWORD=${{ env.POETRY_HTTP_BASIC_CODEARTIFACT_PASSWORD }}
 #          cache-from: type=gha
 #          cache-to: type=gha,mode=max
           tags: ${{ env.IMAGE_NAME }}
           load: true
+        env:
+          POETRY_HTTP_BASIC_CODEARTIFACT_PASSWORD: $(aws codeartifact get-authorization-token --domain-owner ${{ inputs.aws-domain-owner }} --domain ${{ inputs.aws-domain }} --query 'authorizationToken' --output text)
 
       - name: Get Python changed files
         id: changed-py-files

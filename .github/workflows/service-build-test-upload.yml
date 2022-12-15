@@ -77,7 +77,8 @@ jobs:
           aws-region: ${{ inputs.aws-region }}
           role-to-assume: ${{ inputs.aws-role }}
 
-      - uses: docker/build-push-action@v2
+      - run: export POETRY_HTTP_BASIC_CODEARTIFACT_PASSWORD=$(aws codeartifact get-authorization-token --domain-owner ${{ inputs.aws-domain-owner }} --domain ${{ inputs.aws-domain }} --query 'authorizationToken' --output text)
+        uses: docker/build-push-action@v2
         with:
           context: .
           no-cache: true
@@ -86,8 +87,6 @@ jobs:
 #          cache-to: type=gha,mode=max
           tags: ${{ env.IMAGE_NAME }}
           load: true
-        env:
-          POETRY_HTTP_BASIC_CODEARTIFACT_PASSWORD: $(aws codeartifact get-authorization-token --domain-owner ${{ inputs.aws-domain-owner }} --domain ${{ inputs.aws-domain }} --query 'authorizationToken' --output text)
 
       - name: Get Python changed files
         id: changed-py-files

@@ -12,6 +12,12 @@ on:
       cache-repository:
         required: true
         type: string
+      aws-domain:
+        required: true
+        type: string
+      aws-domain-owner:
+        required: true
+        type: string
       aws-role:
         required: true
         type: string

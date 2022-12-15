@@ -77,12 +77,15 @@ jobs:
           aws-region: ${{ inputs.aws-region }}
           role-to-assume: ${{ inputs.aws-role }}
 
-      - run: export POETRY_HTTP_BASIC_CODEARTIFACT_PASSWORD=$(aws codeartifact get-authorization-token --domain-owner ${{ inputs.aws-domain-owner }} --domain ${{ inputs.aws-domain }} --query 'authorizationToken' --output text)
-        uses: docker/build-push-action@v2
+      - name: Generate CodeArtifact password
+        id: codeartifact-password-generator
+        run: echo "{codeartifact_password}={$(aws codeartifact get-authorization-token --domain-owner ${{ inputs.aws-domain-owner }} --domain ${{ inputs.aws-domain }} --query 'authorizationToken' --output text)}" >> $GITHUB_OUTPUT
+
+      - uses: docker/build-push-action@v2
         with:
           context: .
           no-cache: true
-          build-args: POETRY_HTTP_BASIC_CODEARTIFACT_PASSWORD=${{ env.POETRY_HTTP_BASIC_CODEARTIFACT_PASSWORD }}
+          build-args: POETRY_HTTP_BASIC_CODEARTIFACT_PASSWORD=${{ steps.codeartifact-password-generator.outputs.codeartifact_password }}
 #          cache-from: type=gha
 #          cache-to: type=gha,mode=max
           tags: ${{ env.IMAGE_NAME }}

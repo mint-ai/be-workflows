@@ -75,6 +75,7 @@ jobs:
         with:
           context: .
           no-cache: true
+          build-args: POETRY_HTTP_BASIC_CODEARTIFACT_PASSWORD=$(aws codeartifact get-authorization-token --domain-owner ${{ inputs.aws-domain-owner }} --domain ${{ inputs.aws-domain }} --query 'authorizationToken' --output text)
 #          cache-from: type=gha
 #          cache-to: type=gha,mode=max
           tags: ${{ env.IMAGE_NAME }}

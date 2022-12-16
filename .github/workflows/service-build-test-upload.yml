@@ -109,7 +109,7 @@ jobs:
       - name: Run tests
         run: |
           docker run -e "DJANGO_DUMMY_ENV=True" -e POSTGRES_HOST="localhost" -e POSTGRES_PASSWORD=$POSTGRES_PASSWORD --network="host" \
-          --user app --entrypoint "" ${{ env.IMAGE_NAME }} pytest
+          --user app --entrypoint "" ${{ env.IMAGE_NAME }} pytest --ds=google_service.settings
 
       - name: Sonarqube
         uses: sonarsource/sonarqube-scan-action@master

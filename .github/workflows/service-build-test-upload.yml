@@ -77,13 +77,14 @@ jobs:
         id: codeartifact-password-generator
         run: |
           export CODEARTIFACT_PASSWORD=$(aws codeartifact get-authorization-token --domain-owner ${{ inputs.aws-domain-owner }} --domain ${{ inputs.aws-domain }} --query 'authorizationToken' --output text)
-          echo "::add-mask::codeartifact_password=$CODEARTIFACT_PASSWORD" >> $GITHUB_OUTPUT
+          echo "codeartifact_password=$CODEARTIFACT_PASSWORD" >> $GITHUB_OUTPUT
 
       - uses: docker/build-push-action@v2
         with:
           context: .
           no-cache: true
-          build-args: POETRY_HTTP_BASIC_CODEARTIFACT_PASSWORD=${{ steps.codeartifact-password-generator.outputs.codeartifact_password }}
+#          build-args: POETRY_HTTP_BASIC_CODEARTIFACT_PASSWORD=${{ steps.codeartifact-password-generator.outputs.codeartifact_password }}
+          secrets: POETRY_HTTP_BASIC_CODEARTIFACT_PASSWORD=${{ steps.codeartifact-password-generator.outputs.codeartifact_password }}
 #          cache-from: type=gha
 #          cache-to: type=gha,mode=max
           tags: ${{ env.IMAGE_NAME }}

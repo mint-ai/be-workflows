@@ -9,9 +9,6 @@ on:
       repository:
         required: true
         type: string
-      cache-repository:
-        required: true
-        type: string
       aws-domain:
         required: true
         type: string
@@ -42,7 +39,6 @@ jobs:
       POSTGRES_PASSWORD: test
       REGISTRY: ${{ inputs.registry }}
       REPOSITORY: ${{ inputs.repository }}
-      CACHE_REPOSITORY: ${{ inputs.cache-repository }}
 
     services:
       postgres_main:

@@ -83,8 +83,7 @@ jobs:
         with:
           context: .
           no-cache: true
-#          build-args: POETRY_HTTP_BASIC_CODEARTIFACT_PASSWORD=${{ steps.codeartifact-password-generator.outputs.codeartifact_password }}
-          secrets: POETRY_HTTP_BASIC_CODEARTIFACT_PASSWORD=${{ steps.codeartifact-password-generator.outputs.codeartifact_password }}
+          build-args: POETRY_HTTP_BASIC_CODEARTIFACT_PASSWORD=${{ steps.codeartifact-password-generator.outputs.codeartifact_password }}
 #          cache-from: type=gha
 #          cache-to: type=gha,mode=max
           tags: ${{ env.IMAGE_NAME }}

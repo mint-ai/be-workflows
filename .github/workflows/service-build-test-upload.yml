@@ -94,11 +94,12 @@ jobs:
 
       - name: Get Python changed files
         id: changed-py-files
-        uses: tj-actions/changed-files@v23
+        uses: tj-actions/changed-files@v35
         with:
           files: |
             *.py
             **/*.py
+          sha: ${{ github.event.pull_request.head.sha }}
 
       - name: Run black
         if: steps.changed-py-files.outputs.any_changed == 'true'

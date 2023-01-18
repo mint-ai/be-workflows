@@ -110,7 +110,7 @@ jobs:
         run: |
           docker run -e "DJANGO_DUMMY_ENV=True" -e POSTGRES_HOST="localhost" -e POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
           -e POSTGRES_DB=$POSTGRES_DB -e POSTGRES_USER=$POSTGRES_USER  --network="host" --user app --entrypoint "" \
-          ${{ env.IMAGE_NAME }} bash docker/test.sh;
+          ${{ env.IMAGE_NAME }} sh docker/test.sh;
 
       - name: Sonarqube
         uses: sonarsource/sonarqube-scan-action@master

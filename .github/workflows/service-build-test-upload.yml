@@ -108,9 +108,10 @@ jobs:
 
       - name: Run tests
         run: |
-          docker run -e "DJANGO_DUMMY_ENV=True" -e POSTGRES_HOST="localhost" -e POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
-          -e POSTGRES_DB=$POSTGRES_DB -e POSTGRES_USER=$POSTGRES_USER  --network="host" --user app --entrypoint "" \
-          ${{ env.IMAGE_NAME }} bash docker/test.sh;
+          docker run -e "DJANGO_DUMMY_ENV=True" -e POSTGRES_HOST="localhost" \ 
+          -e POSTGRES_PASSWORD -e POSTGRES_DB -e POSTGRES_USER \ 
+          -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e AWS_SESSION_TOKEN \
+          --network="host" --user app --entrypoint "" ${{ env.IMAGE_NAME }} docker/test.sh;
 
       - name: Sonarqube
         uses: sonarsource/sonarqube-scan-action@master

@@ -91,6 +91,7 @@ jobs:
           cache-to: type=gha,mode=max
           tags: ${{ env.IMAGE_NAME }}
           load: true
+          name: main-container
 
       - name: Get Python changed files
         id: changed-py-files
@@ -111,7 +112,11 @@ jobs:
           docker run -e "DJANGO_DUMMY_ENV=True" -e POSTGRES_HOST="localhost" \
           -e POSTGRES_PASSWORD -e POSTGRES_DB -e POSTGRES_USER \
           -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e AWS_SESSION_TOKEN \
-          --network="host" --user app --entrypoint "" ${{ env.IMAGE_NAME }} docker/test.sh;
+          --network="host" --name main_container --user app --entrypoint "" ${{ env.IMAGE_NAME }} docker/test.sh
+
+      - name: Copy coverage.xml
+        continue-on-error: true
+        run: docker cp main_container:/usr/src/app/coverage.xml ./coverage.xml;
 
       - name: Sonarqube
         uses: sonarsource/sonarqube-scan-action@master

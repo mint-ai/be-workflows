@@ -21,6 +21,18 @@ on:
       aws-region:
         required: true
         type: string
+      python_files:
+        required: true
+        type: boolean
+      run_tests:
+        required: true
+        type: boolean
+      coverage:
+        required: true
+        type: boolean
+      sonarqube:
+        required: true
+        type: boolean
 
 
 permissions:
@@ -92,6 +104,7 @@ jobs:
           load: true
 
       - name: Get Python changed files
+        if: ${{ inputs.python_files }}
         id: changed-py-files
         uses: tj-actions/changed-files@v35
         with:
@@ -106,6 +119,7 @@ jobs:
           docker run --entrypoint "" ${{ env.IMAGE_NAME }} black --target-version py310 -S --check /usr/src/app
 
       - name: Run tests
+        if: ${{ inputs.run_tests }}
         run: |
           docker run -e "DJANGO_DUMMY_ENV=True" -e POSTGRES_HOST="localhost" \
           -e POSTGRES_PASSWORD -e POSTGRES_DB -e POSTGRES_USER \
@@ -113,10 +127,12 @@ jobs:
           --network="host" --name main_container --user app --entrypoint "" ${{ env.IMAGE_NAME }} docker/test.sh
 
       - name: Copy coverage.xml
+        if: ${{ inputs.coverage }}
         continue-on-error: true
         run: docker cp main_container:/usr/src/app/coverage.xml ./coverage.xml;
 
       - name: Sonarqube
+        if: ${{ inputs.sonarqube }}
         uses: sonarsource/sonarqube-scan-action@master
         env:
             SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

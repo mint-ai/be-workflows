@@ -1,0 +1,251 @@
+name: Build, test and upload
+
+on:
+  workflow_call:
+    inputs:
+      registry:
+        required: true
+        type: string
+      repository:
+        required: true
+        type: string
+      aws-domain:
+        required: true
+        type: string
+      aws-domain-owner:
+        required: true
+        type: string
+      aws-role:
+        required: true
+        type: string
+      aws-region:
+        required: true
+        type: string
+
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-test-upload:
+    name: Build, test and upload new artifact
+
+    runs-on: ubuntu-latest
+
+    env:
+      POSTGRES_DB: myn
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: test
+      REGISTRY: ${{ inputs.registry }}
+      REPOSITORY: ${{ inputs.repository }}
+      DRUID_SINGLE_NODE_CONF: micro-quickstart
+      druid_emitter_logging_logLevel: debug
+      druid_extensions_loadList: [ 'druid-histogram', 'druid-datasketches', 'druid-lookups-cached-global', 'postgresql-metadata-storage', 'druid-multi-stage-query' ]
+      druid_zk_service_host: zookeeper
+      druid_metadata_storage_type: postgresql
+      druid_metadata_storage_connector_connectURI: jdbc:postgresql://postgres:5432/druid
+      druid_metadata_storage_connector_user: druid
+      druid_metadata_storage_connector_password: FoolishPassword
+      druid_coordinator_balancer_strategy: cachingCost
+      druid_indexer_runner_javaOptsArray: [ '-server', '-Xmx1g', '-Xms1g', '-XX:MaxDirectMemorySize=3g', '-Duser.timezone=UTC', '-Dfile.encoding=UTF-8', '-Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager' ]
+      druid_indexer_fork_property_druid_processing_buffer_sizeBytes: 256MiB
+      druid_storage_type: local
+      druid_storage_storageDirectory: /opt/shared/segments
+      druid_indexer_logs_type: file
+      druid_indexer_logs_directory: /opt/shared/indexing-logs
+      druid_processing_numThreads: 2
+      druid_processing_numMergeBuffers: 2
+      DRUID_LOG4J: '<?xml version="1.0" encoding="UTF-8" ?><Configuration status="WARN"><Appenders><Console name="Console" target="SYSTEM_OUT"><PatternLayout pattern="%d{ISO8601} %p [%t] %c - %m%n"/></Console></Appenders><Loggers><Root level="info"><AppenderRef ref="Console"/></Root><Logger name="org.apache.druid.jetty.RequestLog" additivity="false" level="DEBUG"><AppenderRef ref="Console"/></Logger></Loggers></Configuration>'
+      ENVIRONMENT: local
+      POSTGRES_PORT: 5432
+      DRUID_HOST: localhost
+      DRUID_PORT: 8082
+      DRUID_USER: druid
+      DRUID_PASSWORD: druid
+      DRUID_PATH: "/druid/v2/sql"
+      DRUID_SCHEME: "http"
+      DRUID_DATASOURCE: "local_test_source"
+
+    services:
+      postgres:
+        container_name: postgres
+        image: postgres:latest
+        ports:
+          - "5440:5432"
+        volumes:
+          - metadata_data:/var/lib/druid-postgresql/data
+        environment:
+          - POSTGRES_PASSWORD=FoolishPassword
+          - POSTGRES_USER=druid
+          - POSTGRES_DB=druid
+
+      zookeeper:
+        container_name: zookeeper
+        image: zookeeper:3.5
+        ports:
+          - "2181:2181"
+        environment:
+          - ZOO_MY_ID=1
+
+      coordinator:
+        image: apache/druid:25.0.0
+        container_name: coordinator
+        volumes:
+          - druid_shared:/opt/shared
+          - coordinator_var:/opt/druid/var
+        depends_on:
+          - zookeeper
+          - postgres
+        ports:
+          - "8081:8081"
+        command:
+          - coordinator
+
+      broker:
+        image: apache/druid:25.0.0
+        container_name: broker
+        volumes:
+          - broker_var:/opt/druid/var
+        depends_on:
+          - zookeeper
+          - postgres
+          - coordinator
+        ports:
+          - "8082:8082"
+        command:
+          - broker
+
+      historical:
+        image: apache/druid:25.0.0
+        container_name: historical
+        volumes:
+          - druid_shared:/opt/shared
+          - historical_var:/opt/druid/var
+        depends_on:
+          - zookeeper
+          - postgres
+          - coordinator
+        ports:
+          - "8083:8083"
+        command:
+          - historical
+
+      middlemanager:
+        image: apache/druid:25.0.0
+        container_name: middlemanager
+        volumes:
+          - druid_shared:/opt/shared
+          - middle_var:/opt/druid/var
+        depends_on:
+          - zookeeper
+          - db-test
+          - coordinator
+        ports:
+          - "8091:8091"
+          - "8100-8105:8100-8105"
+        command:
+          - middleManager
+
+
+      router:
+        image: apache/druid:25.0.0
+        container_name: router
+        volumes:
+          - router_var:/opt/druid/var
+        depends_on:
+          - zookeeper
+          - postgres
+          - coordinator
+        ports:
+          - "8888:8888"
+        command:
+          - router
+
+      postgres_main:
+        image: postgres:10-alpine
+        env:
+          POSTGRES_DB: ${{ env.POSTGRES_DB }}
+          POSTGRES_USER: ${{ env.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Set IMAGE_NAME
+        run: |
+          GIT_SHORT_REV=$(git rev-parse --short HEAD)
+          echo "IMAGE_NAME=$REGISTRY/$REPOSITORY:$GIT_SHORT_REV" >> $GITHUB_ENV
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: ${{ inputs.aws-region }}
+          role-to-assume: ${{ inputs.aws-role }}
+
+      - name: Generate CodeArtifact password
+        id: codeartifact-password-generator
+        run: |
+          export CODEARTIFACT_PASSWORD=$(aws codeartifact get-authorization-token --domain-owner ${{ inputs.aws-domain-owner }} --domain ${{ inputs.aws-domain }} --query 'authorizationToken' --output text)
+          echo "::add-mask::$CODEARTIFACT_PASSWORD"
+          echo "codeartifact_password=$CODEARTIFACT_PASSWORD" >> $GITHUB_OUTPUT
+
+      - uses: docker/build-push-action@v2
+        with:
+          context: .
+          build-args: POETRY_HTTP_BASIC_CODEARTIFACT_PASSWORD=${{ steps.codeartifact-password-generator.outputs.codeartifact_password }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: ${{ env.IMAGE_NAME }}
+          load: true
+
+      - name: Get Python changed files
+        id: changed-py-files
+        uses: tj-actions/changed-files@v35
+        with:
+          files: |
+            *.py
+            **/*.py
+          sha: ${{ github.event.pull_request.head.sha }}
+
+      - name: Run black
+        if: steps.changed-py-files.outputs.any_changed == 'true'
+        run: |
+          docker run --entrypoint "" ${{ env.IMAGE_NAME }} black --target-version py310 -S --check /usr/src/app
+
+      - name: Run tests
+        run: |
+          docker run -e "DJANGO_DUMMY_ENV=True" -e POSTGRES_HOST="localhost" \
+          -e POSTGRES_PASSWORD -e POSTGRES_DB -e POSTGRES_USER \
+          -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e AWS_SESSION_TOKEN \
+          --network="host" --name main_container --user app --entrypoint "" ${{ env.IMAGE_NAME }} docker/test.sh
+
+      - name: Copy coverage.xml
+        continue-on-error: true
+        run: docker cp main_container:/usr/src/app/coverage.xml ./coverage.xml;
+
+      - name: Sonarqube
+        uses: sonarsource/sonarqube-scan-action@master
+        env:
+            SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+            SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Push ${{ env.IMAGE_NAME }} to Amazon ECR
+        run: docker push ${{ env.IMAGE_NAME }}

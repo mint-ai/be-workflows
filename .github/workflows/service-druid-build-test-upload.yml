@@ -41,14 +41,14 @@ jobs:
       REPOSITORY: ${{ inputs.repository }}
       DRUID_SINGLE_NODE_CONF: micro-quickstart
       druid_emitter_logging_logLevel: debug
-      druid_extensions_loadList: [ 'druid-histogram', 'druid-datasketches', 'druid-lookups-cached-global', 'postgresql-metadata-storage', 'druid-multi-stage-query' ]
+      druid_extensions_loadList: "[ 'druid-histogram', 'druid-datasketches', 'druid-lookups-cached-global', 'postgresql-metadata-storage', 'druid-multi-stage-query' ]"
       druid_zk_service_host: zookeeper
       druid_metadata_storage_type: postgresql
       druid_metadata_storage_connector_connectURI: jdbc:postgresql://postgres:5432/druid
       druid_metadata_storage_connector_user: druid
       druid_metadata_storage_connector_password: FoolishPassword
       druid_coordinator_balancer_strategy: cachingCost
-      druid_indexer_runner_javaOptsArray: [ '-server', '-Xmx1g', '-Xms1g', '-XX:MaxDirectMemorySize=3g', '-Duser.timezone=UTC', '-Dfile.encoding=UTF-8', '-Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager' ]
+      druid_indexer_runner_javaOptsArray: "[ '-server', '-Xmx1g', '-Xms1g', '-XX:MaxDirectMemorySize=3g', '-Duser.timezone=UTC', '-Dfile.encoding=UTF-8', '-Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager' ]"
       druid_indexer_fork_property_druid_processing_buffer_sizeBytes: 256MiB
       druid_storage_type: local
       druid_storage_storageDirectory: /opt/shared/segments
@@ -175,7 +175,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -186,7 +185,6 @@ jobs:
         run: |
           GIT_SHORT_REV=$(git rev-parse --short HEAD)
           echo "IMAGE_NAME=$REGISTRY/$REPOSITORY:$GIT_SHORT_REV" >> $GITHUB_ENV
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
@@ -202,7 +200,6 @@ jobs:
           export CODEARTIFACT_PASSWORD=$(aws codeartifact get-authorization-token --domain-owner ${{ inputs.aws-domain-owner }} --domain ${{ inputs.aws-domain }} --query 'authorizationToken' --output text)
           echo "::add-mask::$CODEARTIFACT_PASSWORD"
           echo "codeartifact_password=$CODEARTIFACT_PASSWORD" >> $GITHUB_OUTPUT
-
       - uses: docker/build-push-action@v2
         with:
           context: .
@@ -225,14 +222,12 @@ jobs:
         if: steps.changed-py-files.outputs.any_changed == 'true'
         run: |
           docker run --entrypoint "" ${{ env.IMAGE_NAME }} black --target-version py310 -S --check /usr/src/app
-
       - name: Run tests
         run: |
           docker run -e "DJANGO_DUMMY_ENV=True" -e POSTGRES_HOST="localhost" \
           -e POSTGRES_PASSWORD -e POSTGRES_DB -e POSTGRES_USER \
           -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e AWS_SESSION_TOKEN \
           --network="host" --name main_container --user app --entrypoint "" ${{ env.IMAGE_NAME }} docker/test.sh
-
       - name: Copy coverage.xml
         continue-on-error: true
         run: docker cp main_container:/usr/src/app/coverage.xml ./coverage.xml;

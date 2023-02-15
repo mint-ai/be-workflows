@@ -87,8 +87,6 @@ jobs:
         image: postgres:latest
         ports:
           - 5440:5432
-        volumes:
-          - metadata_data:/var/lib/druid-postgresql/data
         env:
           POSTGRES_PASSWORD: FoolishPassword
           POSTGRES_USER: druid
@@ -103,40 +101,27 @@ jobs:
 
       coordinator:
         image: apache/druid:25.0.0
-        volumes:
-          - druid_shared:/opt/shared
-          - coordinator_var:/opt/druid/var
         ports:
           - 8081:8081
 
       broker:
         image: apache/druid:25.0.0
-        volumes:
-          - broker_var:/opt/druid/var
         ports:
           - 8082:8082
 
       historical:
         image: apache/druid:25.0.0
-        volumes:
-          - druid_shared:/opt/shared
-          - historical_var:/opt/druid/var
         ports:
           - 8083:8083
 
       middlemanager:
         image: apache/druid:25.0.0
-        volumes:
-          - druid_shared:/opt/shared
-          - middle_var:/opt/druid/var
         ports:
           - 8091:8091
           - "8100-8105:8100-8105"
 
       router:
         image: apache/druid:25.0.0
-        volumes:
-          - router_var:/opt/druid/var
         ports:
           - 8888:8888
 

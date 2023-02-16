@@ -108,14 +108,15 @@ jobs:
           - 2181:2181
         env:
           ZOO_MY_ID: 1
-#
-#      coordinator:
-#        image: apache/druid:25.0.0
-#        volumes:
-#          - druid_shared:/opt/shared
-#          - coordinator_var:/opt/druid/var
-#        ports:
-#          - 8081:8081
+
+      coordinator:
+        image: apache/druid:25.0.0
+        volumes:
+          - druid_shared:/opt/shared
+          - coordinator_var:/opt/druid/var
+        ports:
+          - 8081:8081
+
 #
 #      broker:
 #        image: apache/druid:25.0.0
@@ -197,6 +198,7 @@ jobs:
           docker run --entrypoint "" ${{ env.IMAGE_NAME }} black --target-version py310 -S --check /usr/src/app
       - name: Run tests
         run: |
+          coordinator 
           docker run -e "DJANGO_DUMMY_ENV=True" -e POSTGRES_HOST="localhost" \
           -e POSTGRES_PASSWORD -e POSTGRES_DB -e POSTGRES_USER \
           -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e AWS_SESSION_TOKEN \

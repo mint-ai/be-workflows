@@ -102,12 +102,12 @@ jobs:
           # Opens tcp port 6379 on the host and service container
           - 6379:6379
 
-#      zookeeper:
-#        image: zookeeper:3.5
-#        ports:
-#          - 2181:2181
-#        env:
-#          ZOO_MY_ID: 1
+      zookeeper:
+        image: zookeeper:3.5
+        ports:
+          - 2181:2181
+        env:
+          ZOO_MY_ID: 1
 #
 #      coordinator:
 #        image: apache/druid:25.0.0

@@ -21,10 +21,6 @@ on:
       aws-region:
         required: true
         type: string
-      black-python-target-version:
-        required: true
-        type: string
-
 
 permissions:
   id-token: write
@@ -102,11 +98,6 @@ jobs:
             *.py
             **/*.py
           sha: ${{ github.event.pull_request.head.sha }}
-
-      - name: Run black
-        if: steps.changed-py-files.outputs.any_changed == 'true'
-        run: |
-          docker run --entrypoint "" ${{ env.IMAGE_NAME }} python -m black --target-version ${{ inputs.black-python-target-version }} -S --check /usr/src/app
 
       - name: Run tests
         run: |

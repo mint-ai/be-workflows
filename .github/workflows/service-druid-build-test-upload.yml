@@ -104,7 +104,7 @@ jobs:
           docker run --entrypoint "" ${{ env.IMAGE_NAME }} black --target-version py310 -S --check /usr/src/app
       - name: Run tests
         run: |
-          docker-compose run --rm test tests
+          docker-compose run --rm -e POETRY_HTTP_BASIC_CODEARTIFACT_PASSWORD=${{ steps.codeartifact-password-generator.outputs.codeartifact_password }} test tests
       - name: Copy coverage.xml
         continue-on-error: true
         run: docker cp main_container:/usr/src/app/coverage.xml ./coverage.xml;

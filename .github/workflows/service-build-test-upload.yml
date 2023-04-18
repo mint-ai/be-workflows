@@ -118,7 +118,7 @@ jobs:
       - name: Run mypy
         if: ${{ steps.changed-py-files.outputs.any_changed == 'true' && success() || failure() }}
         run: |
-          docker run --entrypoint "" ${{ env.IMAGE_NAME }} mypy ${{ steps.changed-py-files.outputs.all_changed_files }} --follow-imports=silent  --install-types --non-interactive
+          docker run --entrypoint "" ${{ env.IMAGE_NAME }} mypy ${{ steps.changed-py-files.outputs.all_changed_files }} --follow-imports=silent --non-interactive
 
       - name: Run tests
         if: success()

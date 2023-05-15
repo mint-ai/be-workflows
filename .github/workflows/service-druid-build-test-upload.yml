@@ -104,10 +104,10 @@ jobs:
           docker run --entrypoint "" ${{ env.IMAGE_NAME }} black --target-version py310 -S --check /usr/src/app
       - name: Run tests
         run: |
-          docker-compose run --rm test tests
+          docker-compose run --name main_container test tests
       - name: Copy coverage.xml
         continue-on-error: true
-        run: docker cp main_container:/usr/src/app/coverage.xml ./coverage.xml;
+        run: docker cp main_container:/home/app/coverage.xml ./coverage.xml;
 
       - name: Sonarqube
         uses: sonarsource/sonarqube-scan-action@master

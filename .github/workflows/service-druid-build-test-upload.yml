@@ -21,7 +21,10 @@ on:
       aws-region:
         required: true
         type: string
-
+      sonar:
+        type: boolean
+        required: false
+        default: true
 
 permissions:
   id-token: write
@@ -110,6 +113,7 @@ jobs:
         run: docker cp main_container:/home/app/coverage.xml ./coverage.xml;
 
       - name: Sonarqube
+        if: inputs.sonar
         uses: sonarsource/sonarqube-scan-action@master
         env:
             SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

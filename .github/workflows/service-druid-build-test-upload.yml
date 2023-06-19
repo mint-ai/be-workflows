@@ -25,6 +25,10 @@ on:
         type: boolean
         required: false
         default: true
+      coverage-xml-location:
+        type: string
+        required: false
+        default: "/home/app/coverage.xml"
 
 permissions:
   id-token: write
@@ -129,7 +133,7 @@ jobs:
 
       - name: Copy coverage.xml
         continue-on-error: true
-        run: docker cp main_container:/home/app/coverage.xml ./coverage.xml;
+        run: docker cp main_container:${{ inputs.coverage-xml-location }} ./coverage.xml;
 
       - name: Sonarqube
         if: inputs.sonar

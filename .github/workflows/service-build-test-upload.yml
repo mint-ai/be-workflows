@@ -25,6 +25,10 @@ on:
         type: boolean
         required: false
         default: true
+      tests:
+        type: boolean
+        required: false
+        default: true
 
 permissions:
   id-token: write
@@ -110,6 +114,7 @@ jobs:
           docker run --entrypoint "" ${{ env.IMAGE_NAME }} black --target-version py310 -S --check /usr/src/app
 
       - name: Run tests
+        if: inputs.tests
         run: |
           docker run -e "DJANGO_DUMMY_ENV=True" -e POSTGRES_HOST="localhost" \
           -e POSTGRES_PASSWORD -e POSTGRES_DB -e POSTGRES_USER \

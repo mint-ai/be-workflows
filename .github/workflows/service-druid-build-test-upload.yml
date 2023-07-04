@@ -68,6 +68,7 @@ jobs:
         run: |
           GIT_SHORT_REV=$(git rev-parse --short HEAD)
           echo "IMAGE_NAME=$REGISTRY/$REPOSITORY:$GIT_SHORT_REV" >> $GITHUB_ENV
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
@@ -105,9 +106,27 @@ jobs:
         if: steps.changed-py-files.outputs.any_changed == 'true'
         run: |
           docker run --entrypoint "" ${{ env.IMAGE_NAME }} black --target-version py310 -S --check /usr/src/app
+
+      - name: Run isort
+        if: ${{ steps.changed-py-files.outputs.any_changed == 'true' && success() || failure() }}
+        run: |
+          docker run --entrypoint "" ${{ env.IMAGE_NAME }} isort --check-only --profile black ${{ steps.changed-py-files.outputs.all_changed_files }}
+
+      - name: Run flake8
+        if: ${{steps.changed-py-files.outputs.any_changed == 'true' && success() || failure() }}
+        run: |
+          docker run --entrypoint "" ${{ env.IMAGE_NAME }} flake8 ${{ steps.changed-py-files.outputs.all_changed_files }}
+
+      - name: Run mypy
+        if: ${{ steps.changed-py-files.outputs.any_changed == 'true' && success() || failure() }}
+        run: |
+          docker run --entrypoint "" ${{ env.IMAGE_NAME }} mypy ${{ steps.changed-py-files.outputs.all_changed_files }}
+
       - name: Run tests
+        if: success()
         run: |
           docker-compose run --name main_container test tests
+
       - name: Copy coverage.xml
         continue-on-error: true
         run: docker cp main_container:/home/app/coverage.xml ./coverage.xml;

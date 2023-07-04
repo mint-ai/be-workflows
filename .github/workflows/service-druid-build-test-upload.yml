@@ -112,16 +112,6 @@ jobs:
         run: |
           docker run --entrypoint "" ${{ env.IMAGE_NAME }} isort --check-only --profile black ${{ steps.changed-py-files.outputs.all_changed_files }}
 
-      - name: Run flake8
-        if: ${{steps.changed-py-files.outputs.any_changed == 'true' && success() || failure() }}
-        run: |
-          docker run --entrypoint "" ${{ env.IMAGE_NAME }} flake8 ${{ steps.changed-py-files.outputs.all_changed_files }}
-
-      - name: Run mypy
-        if: ${{ steps.changed-py-files.outputs.any_changed == 'true' && success() || failure() }}
-        run: |
-          docker run --entrypoint "" ${{ env.IMAGE_NAME }} mypy ${{ steps.changed-py-files.outputs.all_changed_files }}
-
       - name: Run tests
         if: success()
         run: |

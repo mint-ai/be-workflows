@@ -22,7 +22,6 @@ on:
         required: true
         type: string
 
-
 permissions:
   id-token: write
   contents: read
@@ -101,7 +100,7 @@ jobs:
       - name: Run black
         if: steps.changed-py-files.outputs.any_changed == 'true'
         run: |
-          docker run --entrypoint "" ${{ env.IMAGE_NAME }} black --target-version py310 -S --check /usr/src/app
+          docker run --entrypoint "" ${{ env.IMAGE_NAME }} black --target-version py38 -S --check /usr/src/app
       - name: Run tests
         run: |
           docker-compose run --rm test tests
@@ -112,8 +111,8 @@ jobs:
       - name: Sonarqube
         uses: sonarsource/sonarqube-scan-action@master
         env:
-            SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-            SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
       - name: Login to Amazon ECR
         id: login-ecr

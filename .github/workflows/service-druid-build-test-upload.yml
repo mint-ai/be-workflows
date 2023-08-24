@@ -118,7 +118,7 @@ jobs:
         run: docker cp main_container:${{ inputs.coverage-xml-location }} ./coverage.xml;
 
       - name: Sonarqube
-        if: inputs.sonar
+        if: ${{ inputs.sonar && github.actor != 'dependabot[bot]' }}
         uses: sonarsource/sonarqube-scan-action@master
         env:
             SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -126,7 +126,9 @@ jobs:
 
       - name: Login to Amazon ECR
         id: login-ecr
+        if: ${{ github.actor != 'dependabot[bot]' }}
         uses: aws-actions/amazon-ecr-login@v1
 
       - name: Push ${{ env.IMAGE_NAME }} to Amazon ECR
+        if: ${{ github.actor != 'dependabot[bot]' }}
         run: docker push ${{ env.IMAGE_NAME }}

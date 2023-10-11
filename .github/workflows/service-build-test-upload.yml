@@ -53,7 +53,7 @@ jobs:
 
     services:
       postgres_main:
-        image: postgres:10-alpine
+        image: postgres:14.5-alpine
         env:
           POSTGRES_DB: ${{ env.POSTGRES_DB }}
           POSTGRES_USER: ${{ env.POSTGRES_USER }}

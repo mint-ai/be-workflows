@@ -111,7 +111,7 @@ jobs:
       - name: Run tests
         if: success()
         run: |
-          docker-compose run --name main_container test tests
+          docker compose run --name main_container test tests
 
       - name: Copy coverage.xml
         continue-on-error: true

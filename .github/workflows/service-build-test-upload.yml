@@ -129,13 +129,6 @@ jobs:
         continue-on-error: true
         run: docker cp main_container:${{ inputs.coverage-xml-location }} ./coverage.xml;
 
-      - name: Sonarqube
-        if: ${{ inputs.sonar && (github.actor != 'dependabot[bot]') }}
-        uses: sonarsource/sonarqube-scan-action@master
-        env:
-            SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-            SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-
       - name: SonarCloud Scan
         if: ${{ inputs.sonar && (github.actor != 'dependabot[bot]') }}
         uses: SonarSource/sonarcloud-github-action@master

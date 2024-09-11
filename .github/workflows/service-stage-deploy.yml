@@ -40,12 +40,16 @@ jobs:
           path: apps
 
       - name: Update apps
-        working-directory: apps/envs/${{ env.STACK }}
         run: |
-          sed -Ei "s/(- ${{ env.APP }}_ver)\s*=.*/\1=${{ env.VERSION }}/" kustomization.yaml
+          if [ "${{ env.STACK }}" = "test" ]; then
+            WORKING_DIR="apps/envs/${{ env.STACK }}/base-tests"
+          else
+            WORKING_DIR="apps/envs/${{ env.STACK }}"
+          fi
+          sed -Ei "s/(- ${{ env.APP }}_ver)\s*=.*/\1=${{ env.VERSION }}/" $WORKING_DIR/kustomization.yaml
           git config user.email deploy-bot@mint.ai
           git config user.name "Deploy bot"
-          git commit kustomization.yaml -m "[${{ env.STACK }}] ${{ env.APP }}: ${{ env.VERSION }}" || COMMITED=$?
+          git commit $WORKING_DIR/kustomization.yaml -m "[${{ env.STACK }}] ${{ env.APP }}: ${{ env.VERSION }}" || COMMITED=$?
           if [[ $COMMITED -eq 0 ]]; then git push; fi
 
       - name: Sync ArgoCD Application

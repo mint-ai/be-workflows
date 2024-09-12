@@ -23,7 +23,7 @@ jobs:
         run: exit 1
 
       - name: Checkout service
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: service
 
@@ -32,7 +32,7 @@ jobs:
         run: echo "VERSION=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
       - name: Checkout apps
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: mint-ai/apps
           ssh-key: ${{ secrets.APPS_SSH_KEY }}

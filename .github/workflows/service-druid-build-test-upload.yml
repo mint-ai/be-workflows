@@ -78,6 +78,8 @@ jobs:
           cache-to: type=gha,mode=max
           tags: ${{ env.IMAGE_NAME }}
           load: true
+          secrets: |
+            codeartifact-password=${{ steps.codeartifact-password-generator.outputs.codeartifact_password }}
 
       - name: Get Python changed files
         id: changed-py-files

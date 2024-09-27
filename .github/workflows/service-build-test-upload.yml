@@ -33,7 +33,11 @@ on:
         type: string
         required: false
         default: "/usr/src/app/coverage.xml"
-
+      dockerfile_path:
+        type: string
+        required: false
+        default: "Dockerfile"
+        
 permissions:
   id-token: write
   contents: read
@@ -96,6 +100,7 @@ jobs:
       - uses: docker/build-push-action@v6
         with:
           context: .
+          file: ${{ inputs.dockerfile_path }}          
           build-args: POETRY_HTTP_BASIC_CODEARTIFACT_PASSWORD=${{ steps.codeartifact-password-generator.outputs.codeartifact_password }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

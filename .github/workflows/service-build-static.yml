@@ -1,0 +1,82 @@
+name: Build, and upload application static
+
+on:
+  workflow_call:
+    inputs:
+      registry:
+        required: true
+        type: string
+      repository:
+        required: true
+        type: string
+      aws-domain:
+        required: true
+        type: string
+      aws-domain-owner:
+        required: true
+        type: string
+      aws-role:
+        required: true
+        type: string
+      aws-region:
+        required: true
+        type: string
+      dockerfile_path:
+        type: string
+        required: false
+        default: "Dockerfile"
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-test-upload-application-static:
+    name: Build, test and upload application static new artifact
+
+    runs-on: ubuntu-latest
+
+    env:
+      POSTGRES_DB: myn
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: test
+      REGISTRY: ${{ inputs.registry }}
+      REPOSITORY: ${{ inputs.repository }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Set IMAGE_NAME
+        run: |
+          GIT_SHORT_REV=$(git rev-parse --short HEAD)
+          echo "IMAGE_NAME=$REGISTRY/$REPOSITORY:$GIT_SHORT_REV" >> $GITHUB_ENV
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ inputs.aws-region }}
+          role-to-assume: ${{ inputs.aws-role }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ inputs.dockerfile_path }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: ${{ env.IMAGE_NAME }}
+          load: true
+          secrets: |
+            codeartifact-password=${{ steps.codeartifact-password-generator.outputs.codeartifact_password }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Push ${{ env.IMAGE_NAME }} to Amazon ECR
+        run: docker push ${{ env.IMAGE_NAME }}

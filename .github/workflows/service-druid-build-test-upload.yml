@@ -24,7 +24,7 @@ on:
       sonar:
         type: boolean
         required: false
-        default: true
+        default: false
       coverage-xml-location:
         type: string
         required: false

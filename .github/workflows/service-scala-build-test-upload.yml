@@ -90,8 +90,7 @@ jobs:
       - name: Run tests
         if: inputs.tests
         run: |
-          docker run -e --network="host" --name main_container ${{ env.IMAGE_NAME }} /app/docker/test.sh
-          
+          docker run -e --network="host" --name main_container --entrypoint ""  ${{ env.IMAGE_NAME }} /app/docker/test.sh
       - name: Copy coverage.xml
         continue-on-error: true
         run: docker cp main_container:${{ inputs.coverage-xml-location }} ./coverage.xml;

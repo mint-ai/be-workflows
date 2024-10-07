@@ -63,6 +63,13 @@ jobs:
           aws-region: ${{ inputs.aws-region }}
           role-to-assume: ${{ inputs.aws-role }}
 
+      - name: Generate CodeArtifact password
+        id: codeartifact-password-generator
+        run: |
+          export CODEARTIFACT_PASSWORD=$(aws codeartifact get-authorization-token --domain-owner ${{ inputs.aws-domain-owner }} --domain ${{ inputs.aws-domain }} --query 'authorizationToken' --output text)
+          echo "::add-mask::$CODEARTIFACT_PASSWORD"
+          echo "codeartifact_password=$CODEARTIFACT_PASSWORD" >> $GITHUB_OUTPUT
+
       - uses: docker/build-push-action@v6
         with:
           context: .

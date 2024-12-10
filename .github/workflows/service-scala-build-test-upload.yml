@@ -24,7 +24,7 @@ on:
       sonar:
         type: boolean
         required: false
-        default: false
+        default: true
       tests:
         type: boolean
         required: false
@@ -98,10 +98,9 @@ jobs:
 
       - name: Sonarqube
         if: ${{ inputs.sonar && (github.actor != 'dependabot[bot]') }}
-        uses: sonarsource/sonarqube-scan-action@master
+        uses: sonarsource/sonarqube-scan-action@v4.1.0
         env:
             SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-            SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
       - name: Login to Amazon ECR
         id: login-ecr

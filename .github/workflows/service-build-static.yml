@@ -49,11 +49,6 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
-      - name: Set IMAGE_NAME
-        run: |
-          GIT_SHORT_REV=$(git rev-parse --short HEAD)
-          echo "IMAGE_NAME=$REGISTRY/$REPOSITORY:$GIT_SHORT_REV" >> $GITHUB_ENV
-
       - name: Set IMAGE_NAME (PR)  
         if: ${{ github.event_name == 'pull_request' }}  
         shell: bash  

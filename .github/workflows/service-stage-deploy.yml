@@ -27,9 +27,17 @@ jobs:
         with:
           path: service
 
-      - name: Set VERSION
-        working-directory: service
-        run: echo "VERSION=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+      - name: Set VERSION (PR)  
+        if: ${{ github.event_name == 'pull_request' }}  
+        shell: bash  
+        run: |  
+          echo "VERSION=`echo ${{ github.event.pull_request.head.sha }} | cut -c1-7`" >> ${GITHUB_ENV}  
+
+      - name: Set VERSION (Push)  
+        if: ${{ github.event_name == 'push' }}  
+        shell: bash  
+        run: |  
+          echo "VERSION=`echo ${GITHUB_SHA} | cut -c1-7`" >> ${GITHUB_ENV}
 
       - name: Checkout apps
         uses: actions/checkout@v4

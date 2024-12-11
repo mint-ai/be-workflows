@@ -30,12 +30,14 @@ jobs:
       - name: Set VERSION (PR)  
         if: ${{ github.event_name == 'pull_request' }}  
         shell: bash  
+        working-directory: service
         run: |  
           echo "VERSION=`echo ${{ github.event.pull_request.head.sha }} | cut -c1-7`" >> ${GITHUB_ENV}  
 
       - name: Set VERSION (Push)  
         if: ${{ github.event_name == 'push' }}  
         shell: bash  
+        working-directory: service
         run: |  
           echo "VERSION=`echo ${GITHUB_SHA} | cut -c1-7`" >> ${GITHUB_ENV}
 

@@ -49,18 +49,9 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
-      - name: Set IMAGE_NAME (PR)  
-        if: ${{ github.event_name == 'pull_request' }}  
-        shell: bash  
-        run: |  
-          GIT_SHORT_REV=`echo ${{ github.event.pull_request.head.sha }} | cut -c1-7`
-          echo "IMAGE_NAME=$REGISTRY/$REPOSITORY:$GIT_SHORT_REV" >> $GITHUB_ENV
-
-      - name: Set IMAGE_NAME (Push)  
-        if: ${{ github.event_name == 'push' }}  
-        shell: bash  
-        run: |  
-          GIT_SHORT_REV=`echo ${GITHUB_SHA} | cut -c1-7`
+      - name: Set IMAGE_NAME
+        run: |
+          GIT_SHORT_REV=$(git rev-parse HEAD | cut -c1-7)
           echo "IMAGE_NAME=$REGISTRY/$REPOSITORY:$GIT_SHORT_REV" >> $GITHUB_ENV
 
       - name: Set up Docker Buildx

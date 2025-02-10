@@ -41,7 +41,7 @@ jobs:
       run: |
         export POETRY_HTTP_BASIC_CODEARTIFACT_USERNAME=aws
         export POETRY_HTTP_BASIC_CODEARTIFACT_PASSWORD=$(aws codeartifact get-authorization-token --domain-owner ${{ inputs.aws-domain-owner }} --domain ${{ inputs.aws-domain }} --query 'authorizationToken' --output text)
-        curl -sSL https://install.python-poetry.org | python3 -
+        pipx install 'poetry<2'
         poetry config virtualenvs.create false && poetry install --with test
     - name: Get Python changed files
       id: changed-py-files

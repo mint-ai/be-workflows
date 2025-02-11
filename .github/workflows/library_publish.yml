@@ -54,12 +54,12 @@ jobs:
       - name: Install dependencies
         env:
           POETRY_HTTP_BASIC_CODEARTIFACT_USERNAME: aws
-          POETRY_HTTP_BASIC_CODEARTIFACT_PASSWORD: ${{ steps.codeartifact.outputs.codeartifact }}
+          POETRY_HTTP_BASIC_CODEARTIFACT_PASSWORD: ${{ steps.codeartifact.outputs.password }}
         run: poetry install --no-root
       - name: Publish package to CodeArtifact
         env:
           POETRY_HTTP_BASIC_CODEARTIFACT_USERNAME: aws
-          POETRY_HTTP_BASIC_CODEARTIFACT_PASSWORD: ${{ steps.codeartifact.outputs.codeartifact }}
+          POETRY_HTTP_BASIC_CODEARTIFACT_PASSWORD: ${{ steps.codeartifact.outputs.password }}
           POETRY_REPOSITORIES_CODEARTIFACT_URL: https://${{ inputs.aws-domain }}-${{ inputs.aws-domain-owner }}.d.codeartifact.${{ inputs.aws-region }}.amazonaws.com/pypi/api-team/
         run: |
           poetry -vvv publish --build --repository codeartifact

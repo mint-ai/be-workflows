@@ -49,7 +49,7 @@ jobs:
     - name: Install dependencies
       env:
         POETRY_HTTP_BASIC_CODEARTIFACT_USERNAME: aws
-        POETRY_HTTP_BASIC_CODEARTIFACT_PASSWORD: ${{ steps.codeartifact.outputs.codeartifact }}
+        POETRY_HTTP_BASIC_CODEARTIFACT_PASSWORD: ${{ steps.codeartifact.outputs.password }}
       run: poetry install --with test
 
     - name: Get Python changed files

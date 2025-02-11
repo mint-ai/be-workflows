@@ -28,21 +28,30 @@ jobs:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
+    - name: Install poetry
+      run: pipx install poetry
     - name: Set up Python 3.8
       uses: actions/setup-python@v5
       with:
         python-version: "3.8"
+        cache: "poetry"
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
         aws-region: ${{ inputs.aws-region }}
         role-to-assume: ${{ inputs.aws-role }}
-    - name: Install dependencies
+    - name: Generate CodeArtifact password
+      id: codeartifact
       run: |
-        export POETRY_HTTP_BASIC_CODEARTIFACT_USERNAME=aws
-        export POETRY_HTTP_BASIC_CODEARTIFACT_PASSWORD=$(aws codeartifact get-authorization-token --domain-owner ${{ inputs.aws-domain-owner }} --domain ${{ inputs.aws-domain }} --query 'authorizationToken' --output text)
-        pipx install 'poetry<2'
-        poetry config virtualenvs.create false && poetry install --with test
+        export CODEARTIFACT_PASSWORD=$(aws codeartifact get-authorization-token --domain-owner ${{ inputs.aws-domain-owner }} --domain ${{ inputs.aws-domain }} --query 'authorizationToken' --output text)
+        echo "::add-mask::$CODEARTIFACT_PASSWORD"
+        echo "password=$CODEARTIFACT_PASSWORD" >> $GITHUB_OUTPUT
+    - name: Install dependencies
+      env:
+        POETRY_HTTP_BASIC_CODEARTIFACT_USERNAME: aws
+        POETRY_HTTP_BASIC_CODEARTIFACT_PASSWORD: ${{ steps.codeartifact.outputs.codeartifact }}
+      run: poetry install --with test
+
     - name: Get Python changed files
       id: changed-py-files
       uses: tj-actions/changed-files@v45
@@ -51,23 +60,21 @@ jobs:
           *.py
           **/*.py
     - name: Lint with flake8
-      if: steps.changed-py-files.outputs.any_changed == 'true'
-      run: flake8 ${{ steps.changed-py-files.outputs.all_changed_files }}
+      if: ${{ steps.changed-py-files.outputs.any_changed == 'true' && success() || failure() }}
+      run: poetry run flake8 ${{ steps.changed-py-files.outputs.all_changed_files }}
     - name: Check format with black
-      if: steps.changed-py-files.outputs.any_changed == 'true'
-      run: black --check ${{ steps.changed-py-files.outputs.all_changed_files }}
+      if: ${{ steps.changed-py-files.outputs.any_changed == 'true' && success() || failure() }}
+      run: poetry run black --check ${{ steps.changed-py-files.outputs.all_changed_files }}
     - name: Check imports with isort
-      if: steps.changed-py-files.outputs.any_changed == 'true'
-      run: isort --check-only --profile black ${{ steps.changed-py-files.outputs.all_changed_files }}
+      if: ${{ steps.changed-py-files.outputs.any_changed == 'true' && success() || failure() }}
+      run: poetry run isort --check-only --profile black ${{ steps.changed-py-files.outputs.all_changed_files }}
     - name: Check with mypy
-      if: steps.changed-py-files.outputs.any_changed == 'true'
-      run: mypy ${{ steps.changed-py-files.outputs.all_changed_files }}
+      if: ${{ steps.changed-py-files.outputs.any_changed == 'true' && success() || failure() }}
+      run: poetry run mypy ${{ steps.changed-py-files.outputs.all_changed_files }}
     - name: Run tests with pytest
-      run: |
-        pytest
+      run: poetry run pytest
     - name: Build
-      run: |
-        poetry -vvv build
+      run: poetry -vvv build
 
 
 permissions:

@@ -99,7 +99,7 @@ jobs:
         run: docker cp main_container:${{ inputs.coverage-xml-location }} ./coverage.xml;
 
       - name: Sonarqube
-        if: ${{ inputs.sonar && (github.actor != 'dependabot[bot]') }}
+        if: ${{ inputs.sonar }}
         uses: sonarsource/sonarqube-scan-action@v5.0.0
         env:
             SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

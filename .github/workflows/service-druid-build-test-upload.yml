@@ -111,17 +111,17 @@ jobs:
           docker run --entrypoint "" ${{ env.IMAGE_NAME }} flake8 ${{ steps.changed-py-files.outputs.all_changed_files }}
 
       - name: Run ruff format
-        if: {{ steps.changed-py-files.outputs.any_changed == 'true' && inputs.ruff == 'true' && (success() || failure() }}
+        if: {{ steps.changed-py-files.outputs.any_changed == 'true' && inputs.ruff == 'true' && (success() || failure()) }}
         run: |
           docker run --entrypoint "" ${{ env.IMAGE_NAME }} ruff format --check --target-version py310 /usr/src/app
 
       - name: Run ruff imports sort
-        if: {{ steps.changed-py-files.outputs.any_changed == 'true' && inputs.ruff == 'true' && (success() || failure() }}
+        if: {{ steps.changed-py-files.outputs.any_changed == 'true' && inputs.ruff == 'true' && (success() || failure()) }}
         run: |
           docker run --entrypoint "" ${{ env.IMAGE_NAME }} ruff check --select I --target-version py310 /usr/src/app
 
       - name: Run ruff
-        if: {{ steps.changed-py-files.outputs.any_changed == 'true' && inputs.ruff == 'true' && (success() || failure() }}
+        if: {{ steps.changed-py-files.outputs.any_changed == 'true' && inputs.ruff == 'true' && (success() || failure()) }}
         run: |
           docker run --entrypoint "" ${{ env.IMAGE_NAME }} ruff check --target-version py310 /usr/src/app
 
@@ -143,7 +143,7 @@ jobs:
         if: ${{ inputs.sonar }}
         uses: sonarsource/sonarqube-scan-action@v5.1.0
         env:
-            SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       - name: Login to Amazon ECR
         id: login-ecr

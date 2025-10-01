@@ -60,16 +60,16 @@ jobs:
           *.py
           **/*.py
     - name: Lint with flake8
-      if: ${{ steps.changed-py-files.outputs.any_changed == 'true' && success() || failure() }}
+      if: ${{ (success() || failure()) && steps.changed-py-files.outputs.any_changed }}
       run: poetry run flake8 ${{ steps.changed-py-files.outputs.all_changed_files }}
     - name: Check format with black
-      if: ${{ steps.changed-py-files.outputs.any_changed == 'true' && success() || failure() }}
+      if: ${{ (success() || failure()) && steps.changed-py-files.outputs.any_changed }}
       run: poetry run black --check ${{ steps.changed-py-files.outputs.all_changed_files }}
     - name: Check imports with isort
-      if: ${{ steps.changed-py-files.outputs.any_changed == 'true' && success() || failure() }}
+      if: ${{ (success() || failure()) && steps.changed-py-files.outputs.any_changed }}
       run: poetry run isort --check-only --profile black ${{ steps.changed-py-files.outputs.all_changed_files }}
     - name: Check with mypy
-      if: ${{ steps.changed-py-files.outputs.any_changed == 'true' && success() || failure() }}
+      if: ${{ (success() || failure()) && steps.changed-py-files.outputs.any_changed }}
       run: poetry run mypy ${{ steps.changed-py-files.outputs.all_changed_files }}
     - name: Run tests with pytest
       run: poetry run pytest

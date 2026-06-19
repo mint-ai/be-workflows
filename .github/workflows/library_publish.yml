@@ -34,11 +34,11 @@ jobs:
             exit 2
           fi
       - name: Install poetry
-        run: pipx install poetry
-      - name: Set up Python 3.8
+        run: pipx install poetry==2.4.1
+      - name: Set up Python 3.14
         uses: actions/setup-python@v5
         with:
-          python-version: "3.8"
+          python-version: "3.14"
           cache: "poetry"
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v5

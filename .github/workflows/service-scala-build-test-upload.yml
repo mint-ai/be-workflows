@@ -84,8 +84,7 @@ jobs:
           context: .
           file: ${{ inputs.dockerfile_path }}
           build-args: POETRY_HTTP_BASIC_CODEARTIFACT_PASSWORD=${{ steps.codeartifact-password-generator.outputs.codeartifact_password }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          no-cache: true
           tags: ${{ env.IMAGE_NAME }}
           load: true
 

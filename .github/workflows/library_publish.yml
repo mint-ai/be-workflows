@@ -34,7 +34,10 @@ jobs:
             exit 2
           fi
       - name: Install poetry
-        run: pipx install poetry==2.4.1
+        # certifi>=2026.10.19 drops roots of the compromised eMudhra intermediate CAs
+        run: |
+          pipx install poetry==2.4.1
+          pipx inject poetry "certifi>=2026.10.19"
       - name: Set up Python 3.14
         uses: actions/setup-python@v5
         with:

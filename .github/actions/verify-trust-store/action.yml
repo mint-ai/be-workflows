@@ -1,0 +1,41 @@
+name: Verify image trust stores
+description: >
+  Fails if any trust store inside the image (OS bundle, certifi, vendored
+  library bundles, Java cacerts) still trusts the roots of the compromised
+  eMudhra intermediate CAs.
+
+inputs:
+  image:
+    description: Locally loaded image to scan
+    required: true
+  fail:
+    description: Fail the job when a distrusted root is found (otherwise only warn)
+    required: false
+    default: "true"
+
+runs:
+  using: composite
+  steps:
+    - name: Scan image trust stores
+      shell: bash
+      env:
+        IMAGE: ${{ inputs.image }}
+        FAIL: ${{ inputs.fail }}
+      run: |
+        set -o pipefail
+        cid=$(docker create "$IMAGE")
+        trap 'docker rm -f "$cid" >/dev/null' EXIT
+        status=0
+        docker export "$cid" | python3 "${{ github.action_path }}/scan.py" || status=$?
+        if [ "$status" -eq 0 ]; then
+          exit 0
+        elif [ "$status" -ne 3 ]; then
+          echo "::error::Trust store scan of $IMAGE failed (exit $status)"
+          exit "$status"
+        fi
+        msg="Image $IMAGE trusts roots of the compromised eMudhra intermediates. Upgrade ca-certificates in the base image, certifi>=2026.10.19, and remove the roots from any vendored bundle or Java cacerts."
+        if [ "$FAIL" = "true" ]; then
+          echo "::error::$msg"
+          exit 1
+        fi
+        echo "::warning::$msg"

@@ -29,7 +29,10 @@ jobs:
       with:
         fetch-depth: 0
     - name: Install poetry
-      run: pipx install poetry
+      # certifi>=2026.10.19 drops roots of the compromised eMudhra intermediate CAs
+      run: |
+        pipx install poetry
+        pipx inject poetry "certifi>=2026.10.19"
     - name: Set up Python 3.8
       uses: actions/setup-python@v5
       with:

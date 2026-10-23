@@ -37,6 +37,11 @@ on:
         type: string
         required: false
         default: "Dockerfile"
+      fail-on-distrusted-ca:
+        description: Fail the build if the image trusts roots of the compromised eMudhra intermediate CAs
+        type: boolean
+        required: false
+        default: true
 
 permissions:
   id-token: write
@@ -79,15 +84,29 @@ jobs:
           export CODEARTIFACT_PASSWORD=$(aws codeartifact get-authorization-token --domain-owner ${{ inputs.aws-domain-owner }} --domain ${{ inputs.aws-domain }} --query 'authorizationToken' --output text)
           echo "::add-mask::$CODEARTIFACT_PASSWORD"
           echo "codeartifact_password=$CODEARTIFACT_PASSWORD" >> $GITHUB_OUTPUT
+
+      # Rotate the layer cache weekly so cached base image / ca-certificates
+      # layers cannot pin a stale trust store forever.
+      - name: Set cache scope
+        id: cache-scope
+        run: echo "scope=buildkit-$(date -u +%G-W%V)" >> $GITHUB_OUTPUT
+
       - uses: docker/build-push-action@v6
         with:
           context: .
           file: ${{ inputs.dockerfile_path }}
           build-args: POETRY_HTTP_BASIC_CODEARTIFACT_PASSWORD=${{ steps.codeartifact-password-generator.outputs.codeartifact_password }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          pull: true
+          cache-from: type=gha,scope=${{ steps.cache-scope.outputs.scope }}
+          cache-to: type=gha,mode=max,scope=${{ steps.cache-scope.outputs.scope }}
           tags: ${{ env.IMAGE_NAME }}
           load: true
+
+      - name: Verify image trust stores
+        uses: mint-ai/be-workflows/.github/actions/verify-trust-store@main
+        with:
+          image: ${{ env.IMAGE_NAME }}
+          fail: ${{ inputs.fail-on-distrusted-ca }}
 
       - name: Run tests
         if: inputs.tests
